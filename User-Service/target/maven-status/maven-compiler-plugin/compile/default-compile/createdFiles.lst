@@ -1,0 +1,10 @@
+com\user\service\UserService.class
+com\user\config\UserConfig.class
+com\user\controller\UserController.class
+com\user\entity\Career.class
+com\user\repository\UserRepositoryImpl.class
+com\user\service\UserServiceImpal.class
+com\user\entity\User.class
+com\user\entity\Assignment.class
+com\user\repository\UserRepository.class
+com\user\UserServiceApplication.class

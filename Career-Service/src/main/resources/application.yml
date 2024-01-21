@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: CAREER-SERVICE  
+  data:
+    mongodb:
+      uri: mongodb://localhost:28018
+      database: careerservice
+  config:
+    import: "optional:configserver:http://localhost:8888"
+
+server:
+  port: 8081
+
+eureka: 
+  client:
+    enabled: true
+    fetch-registry: true
+    register-with-eureka: true
+    service-url: 
+      defaultZone: http://localhost:9090/eureka
+      
+  instance:
+    prefer-ip-address: true

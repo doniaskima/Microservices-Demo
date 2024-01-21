@@ -1,0 +1,11 @@
+-------------------------------------------------------------------------------
+Test set: com.user.UserServiceApplicationTests
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 2.58 s <<< FAILURE! - in com.user.UserServiceApplicationTests
+contextLoads  Time elapsed: 0.002 s  <<< ERROR!
+java.lang.IllegalStateException: Failed to load ApplicationContext
+Caused by: java.lang.IllegalStateException: Error processing condition on org.springframework.cloud.loadbalancer.config.LoadBalancerAutoConfiguration.loadBalancerClientFactory
+Caused by: java.lang.IllegalStateException: Failed to introspect Class [org.springframework.cloud.loadbalancer.config.LoadBalancerAutoConfiguration] from ClassLoader [jdk.internal.loader.ClassLoaders$AppClassLoader@70dea4e]
+Caused by: java.lang.NoClassDefFoundError: org/springframework/beans/factory/aot/BeanRegistrationAotProcessor
+Caused by: java.lang.ClassNotFoundException: org.springframework.beans.factory.aot.BeanRegistrationAotProcessor
+

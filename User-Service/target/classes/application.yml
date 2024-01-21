@@ -1,0 +1,51 @@
+spring :
+  application:
+    name : USER-SERVICE  
+  data :
+    mongodb :
+      uri : mongodb://localhost:28018
+      database: microservices
+  config:
+    import: "optional:configserver:http://localhost:8808"
+
+server:
+  port: 8083
+
+#####RESILence 4J configuration for Circuit breaker
+management:
+ health:
+   circuitbreakers:
+     enabled: true 
+ endpoints:
+   web:
+     exposure:
+       include: health
+ endpoint:
+   health:
+     show-details: always
+
+
+eureka: 
+  client:
+    enabled: true
+    fetch-registry: true
+    register-with-eureka: true
+    service-url: 
+      defaultZone: http://localhost:9090/eureka
+      
+  instance:
+    prefer-ip-address: true
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      userCareerServiceBreaker :
+        registerHealthIndicator: true
+        event-consumer-buffer-size: 10
+        failure-rate-threshold: 10
+        minimum-number-of-calls: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+        wait-duration-in-open-state: 6s
+        permitted-number-of-calls-in-half-open-state: 3
+        sliding-window-size: 10
+        sliding-window-type: COUNT_BASED 
