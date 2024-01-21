@@ -1,4 +1,8 @@
+##  Microservices Demo
 
+###  Introduction
+
+This mini-application demonstrates a microservices architecture using Spring Boot, Netflix Eureka for service discovery, Resilience4j for circuit breaking, and MongoDB for data storage. It consists of several services:
 
 ## Services
 
@@ -117,4 +121,4 @@ String response = restTemplate.getForObject(restUrl, String.class, userId);
 ```
 
 In this approach, Netflix Eureka plays a crucial role in dynamically discovering the network locations of services, making it easier to scale and manage microservices. It also provides resiliency features like load balancing. The proof of its functionality lies in the successful registration and resolution of service names as shown in logs and dashboards.
-```
+ 
