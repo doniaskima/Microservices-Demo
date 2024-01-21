@@ -1,6 +1,4 @@
-# Microservices README
 
-This README file provides documentation for the microservices architecture of our application. It outlines the services, their functionality, communication, and how to run them.
 
 ## Services
 
@@ -38,28 +36,85 @@ This README file provides documentation for the microservices architecture of ou
 - **Port**: 9090
 - **Eureka Server**: Acts as a standalone registry without fetching or registering with other Eureka servers.
 
-## How to Run
 
-1. Ensure MongoDB is installed and running on the specified ports (`27017` and `28018`) for Assignment-Service and Career-Service.
-2. Start Service-Registry (Eureka) by running `ServiceRegistryApplication.java`.
-3. Start ConfigurationServer by running the Spring Boot application.
-4. Start Assignment-Service, Career-Service, and API-Gateway in any order:
+### User-Service Request to Career-Service:
 
+The user-service receives a request from a client (e.g., a web application) to fetch the career information for a user with a specific User ID.
 
-The provided code consists of two microservices, "AssignmentService" and "UserService," and they communicate with each other through RESTful APIs. Here's a brief overview of the relationship and communication between these services:
+```java
+@GetMapping("/{userId}")
+@CircuitBreaker(name = "userCareerServiceBreaker", fallbackMethod = "userCareerServiceFallback")
+public ResponseEntity<User> findUserProfileById(@PathVariable int userId) {
+    // ...
+}
+```
 
-1. AssignmentService:
-   - It is a Spring Boot application that provides RESTful APIs for managing assignments.
-   - It uses a configuration class `AssignmentConfig` to define properties related to its operation, such as service URLs.
-   - The `AssignmentController` handles incoming HTTP requests and interacts with the `AssignmentService` and `AssignmentRepository`.
-   - The `AssignmentEntity` class defines the data structure for assignments.
-   - It doesn't directly communicate with UserService but can be configured to do so using RESTful endpoints.
+### User-Service Makes an HTTP Request:
 
-2. UserService:
-   - It is another Spring Boot application responsible for managing user-related operations.
-   - The `UserController` handles HTTP requests for user-related tasks, including creating users and fetching user profiles.
-   - It uses a `UserRepository` to interact with a MongoDB database to store user information.
-   - The `UserServiceImpal` class contains business logic and communicates with the "AssignmentService" microservice to fetch assignment information for a user profile using a RESTful endpoint.
-   - It utilizes Resilience4j Circuit Breaker for resilience in communication with the "AssignmentService."
+Inside the `findUserProfileById` method, the user-service needs to fetch career information from the career-service.
+To do this, it constructs an HTTP request to the career-service using the RestTemplate and the URL of the career-service.
 
-In summary, these two microservices are separate applications that communicate indirectly via HTTP requests. The UserService interacts with AssignmentService to retrieve assignment information to include in user profiles. They also have their own configurations, controllers, and repositories to manage their respective functionalities.
+```java
+String restUrl = "http://CAREER-SERVICE/career/assignments/{userId}";
+String response = restTemplate.getForObject(restUrl, String.class, userId);
+```
+
+Here, `CAREER-SERVICE` is the logical name of the career-service as registered in Eureka. It's used as the hostname in the URL.
+
+### Service Discovery with Eureka:
+
+When the user-service makes this HTTP request using the service name `CAREER-SERVICE`, Eureka comes into play.
+Eureka resolves the service name `CAREER-SERVICE` to the actual network location (IP address and port) of the career-service.
+
+### Career-Service Handles the Request:
+
+On the career-service side, the controller for the career-service has a mapping to handle the request.
+
+```java
+@GetMapping("/assignments/{userId}")
+public ResponseEntity<CareerEntity> getallAssignmentsByCompanyId(@PathVariable int userId) {
+    // ...
+}
+```
+
+The career-service processes the request, fetches career information for the specified user, and sends back a response.
+
+### User-Service Receives the Response:
+
+The user-service receives the response from the career-service, containing the career information for the user.
+
+### Circuit Breaker (Resilience4j):
+
+If the career-service experiences issues or becomes unavailable, the Circuit Breaker pattern implemented in the user-service (`@CircuitBreaker`) comes into play.
+The circuit breaker may open, and the user-service will execute the fallback method (`userCareerServiceFallback`) to provide a graceful response to the client.
+
+This flow demonstrates how the user-service communicates with the career-service through REST API calls and how Eureka assists in service discovery. Additionally, the Circuit Breaker pattern ensures fault tolerance and provides a fallback mechanism for handling service failures.
+
+### Direct Communication:
+
+In a microservices architecture, services can communicate with each other through various methods, including direct communication and using service discovery tools like Netflix Eureka. I'll explain both approaches and show how you can prove that they work.
+
+### Netflix Eureka Service Discovery:
+
+In the Netflix Eureka approach, services register themselves with Eureka, and Eureka maintains a registry of all available services.
+When one service needs to communicate with another, it uses the logical service name registered with Eureka, and Eureka resolves this name to the actual network location (IP address and port) of the target service.
+
+To prove that Netflix Eureka is facilitating service discovery, you can do the following:
+
+- Start the Eureka Server: Ensure that the Eureka Server is running and accessible at `http://localhost:9090`.
+
+- Register Services: Verify that all microservices (`user-service`, `career-service`, and `assignment-service`) are registering themselves with Eureka. You can check the Eureka Dashboard (`http://localhost:9090`) to see if all services are listed.
+
+- Test Service Communication: In the `user-service` code, use the logical service name (e.g., `CAREER-SERVICE`) when making HTTP requests to other services. Eureka will resolve this name to the actual service location.
+
+- Verify Eureka Logs: Check the logs of the microservices to see Eureka resolving service names to network locations. You should see log entries related to service registration and discovery.
+
+Here's an example of using Eureka for service discovery in the `user-service`:
+
+```java
+String restUrl = "http://CAREER-SERVICE/career/assignments/{userId}"; // Logical service name
+String response = restTemplate.getForObject(restUrl, String.class, userId);
+```
+
+In this approach, Netflix Eureka plays a crucial role in dynamically discovering the network locations of services, making it easier to scale and manage microservices. It also provides resiliency features like load balancing. The proof of its functionality lies in the successful registration and resolution of service names as shown in logs and dashboards.
+```
